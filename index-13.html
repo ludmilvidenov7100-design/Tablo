@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B0F16">
+<title>Пулс на пазара</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#0B0F16;--deck:#121826;--deck-2:#18202F;--rule:#232D40;--rule-soft:#1A2233;
+  --ink:#E8ECF4;--ink-2:#8B98AE;--ink-3:#55617A;
+  --signal:#7C8CF8;--signal-dim:#7C8CF81f;
+  --jade:#4FB286;--jade-dim:#4FB2861c;
+  --coral:#E0707E;--coral-dim:#E0707E1c;
+  --amber:#D9A441;--amber-dim:#D9A4411c;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--void);color:var(--ink);font-family:'Inter Tight',system-ui,sans-serif;
+  font-size:15px;line-height:1.5;padding-bottom:env(safe-area-inset-bottom)}
+::selection{background:var(--signal);color:#fff}
+
+.mast{padding:22px 18px 0;max-width:1400px;margin:0 auto}
+.mast-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.brand{font-family:'Instrument Serif',Georgia,serif;font-size:clamp(30px,7vw,42px);line-height:.95;
+  letter-spacing:-.01em;margin:0;font-weight:400}
+.brand em{font-style:italic;color:var(--signal)}
+.tagline{color:var(--ink-3);font-size:12.5px;margin:7px 0 0;max-width:34ch}
+.pulse{display:flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:10.5px;
+  color:var(--ink-3);white-space:nowrap}
+.led{width:6px;height:6px;border-radius:50%;background:var(--ink-3);flex:0 0 auto}
+.led.live{background:var(--jade);animation:beat 2.4s infinite}
+.led.work{background:var(--amber);animation:beat 1s infinite}
+.led.fail{background:var(--coral)}
+@keyframes beat{0%{box-shadow:0 0 0 0 #4FB28666}70%{box-shadow:0 0 0 7px #4FB28600}100%{box-shadow:0 0 0 0 #4FB28600}}
+@media(prefers-reduced-motion:reduce){.led{animation:none}}
+.rail{height:1px;background:var(--rule-soft);margin-top:18px;position:relative;overflow:hidden}
+.rail i{position:absolute;top:0;bottom:0;left:0;background:var(--signal);width:0;transition:width .35s ease}
+
+.gauges{max-width:1400px;margin:0 auto;padding:18px 18px 0;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;background:var(--rule-soft)}
+.gauge{background:var(--void);padding:14px}
+.gauge dt{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 7px}
+.gauge dd{margin:0;font-family:'JetBrains Mono',monospace;font-size:23px;font-weight:500;letter-spacing:-.02em}
+.gauge .foot{font-size:11px;color:var(--ink-3);margin-top:3px}
+
+.nav{position:sticky;top:0;z-index:30;background:rgba(11,15,22,.93);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--rule);margin-top:18px}
+.nav-in{max-width:1400px;margin:0 auto;padding:0 18px;display:flex;align-items:center;
+  overflow-x:auto;scrollbar-width:none}
+.nav-in::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;background:none;border:0;padding:13px 0;margin-right:18px;cursor:pointer;
+  font-family:'Inter Tight',sans-serif;font-size:13.5px;font-weight:500;color:var(--ink-3);
+  border-bottom:2px solid transparent}
+.tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--signal)}
+.tab:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.tab .ct{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);margin-left:5px}
+.nav-act{margin-left:auto;flex:0 0 auto;padding-left:14px}
+.icon-btn{background:none;border:1px solid var(--rule);color:var(--ink-2);border-radius:6px;
+  padding:7px 11px;font-family:'JetBrains Mono',monospace;font-size:10.5px;cursor:pointer;
+  letter-spacing:.06em;text-transform:uppercase}
+.icon-btn:hover{border-color:var(--signal);color:var(--ink)}
+.icon-btn:disabled{opacity:.4;cursor:default}
+.icon-btn:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+
+.filter{max-width:1400px;margin:0 auto;padding:14px 18px 0;display:flex;gap:10px;flex-wrap:wrap}
+.seek{flex:1 1 190px;min-width:0;background:var(--deck);border:1px solid var(--rule);border-radius:7px;
+  padding:10px 12px;color:var(--ink);font-family:'Inter Tight',sans-serif;font-size:14px}
+.seek::placeholder{color:var(--ink-3)}
+.seek:focus,.sortsel:focus{outline:none;border-color:var(--signal)}
+.sortsel{background:var(--deck);border:1px solid var(--rule);border-radius:7px;padding:10px 11px;
+  color:var(--ink-2);font-family:'JetBrains Mono',monospace;font-size:11.5px}
+
+.sheet{max-width:1400px;margin:14px auto 0;padding:0 18px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:10px;background:var(--deck)}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:1180px}
+thead th{position:sticky;top:47px;z-index:10;background:var(--deck-2);font-family:'JetBrains Mono',monospace;
+  font-size:9.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+  text-align:right;padding:11px 13px;border-bottom:1px solid var(--rule);white-space:nowrap;
+  cursor:pointer;user-select:none}
+thead th:first-child{text-align:left;left:0;z-index:11;box-shadow:1px 0 0 var(--rule)}
+thead th:hover{color:var(--ink-2)}
+tbody td{padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:12.5px;text-align:right;
+  border-bottom:1px solid var(--rule-soft);white-space:nowrap;vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--deck-2)}
+td.id{text-align:left;position:sticky;left:0;background:var(--deck);z-index:5;
+  box-shadow:1px 0 0 var(--rule-soft);min-width:160px}
+tbody tr:hover td.id{background:var(--deck-2)}
+.id-nm{font-family:'Inter Tight',sans-serif;font-weight:600;font-size:13.5px;letter-spacing:-.01em;line-height:1.25}
+.id-tk{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);letter-spacing:.06em}
+.up{color:var(--jade)}.dn{color:var(--coral)}.mute{color:var(--ink-3)}
+.chip{display:inline-block;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;
+  font-family:'Inter Tight',sans-serif;white-space:nowrap}
+.chip-up{background:var(--jade-dim);color:var(--jade)}
+.chip-dn{background:var(--coral-dim);color:var(--coral)}
+.chip-sg{background:var(--signal-dim);color:var(--signal)}
+.rsi-hi{color:var(--coral);font-weight:700}
+.rsi-lo{color:var(--jade);font-weight:700}
+
+.scale{width:150px;height:26px;display:block}
+.bigscale{width:100%;height:64px}
+.scale .track,.bigscale .track{stroke:var(--rule);stroke-width:1.5;stroke-linecap:round}
+.scale .band,.bigscale .band{stroke:var(--signal);stroke-width:1.5;opacity:.3;stroke-linecap:round}
+.scale .ma,.bigscale .ma{stroke:var(--ink-3);stroke-width:1.5}
+.scale .lbl,.bigscale .lbl{font-family:'JetBrains Mono',monospace;font-size:7.5px;fill:var(--ink-3)}
+.spark{width:74px;height:22px;display:block}
+.spark path{fill:none;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+
+.state{padding:44px 20px;text-align:center;color:var(--ink-3);font-size:14px}
+.state b{display:block;color:var(--ink-2);font-size:15px;margin-bottom:6px}
+.skel{display:inline-block;height:9px;border-radius:3px;background:linear-gradient(90deg,var(--rule-soft),var(--rule),var(--rule-soft));
+  background-size:200% 100%;animation:sh 1.4s infinite}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.skel{animation:none}}
+
+.veil{position:fixed;inset:0;background:#060911cc;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+.veil.on{opacity:1;pointer-events:auto}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:61;background:var(--deck);border-top:1px solid var(--rule);
+  border-radius:16px 16px 0 0;max-height:88vh;overflow-y:auto;transform:translateY(101%);
+  transition:transform .26s cubic-bezier(.32,.72,0,1);padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.dock.on{transform:translateY(0)}
+@media(min-width:820px){
+  .dock{left:auto;top:0;bottom:0;width:440px;border-radius:0;border-left:1px solid var(--rule);
+    border-top:0;max-height:100vh;transform:translateX(101%)}
+  .dock.on{transform:translateX(0)}}
+.grip{width:34px;height:4px;background:var(--rule);border-radius:2px;margin:9px auto 0}
+.dock-hd{padding:16px 20px 14px;border-bottom:1px solid var(--rule-soft);display:flex;
+  justify-content:space-between;align-items:flex-start;gap:12px}
+.dock-hd h3{font-family:'Instrument Serif',serif;font-size:26px;margin:0;line-height:1.05;font-weight:400}
+.dock-hd .tk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);letter-spacing:.08em}
+.dock-px{text-align:right;font-family:'JetBrains Mono',monospace}
+.dock-px .v{font-size:21px}
+.shut{background:none;border:0;color:var(--ink-3);font-size:26px;line-height:1;cursor:pointer;padding:0 4px}
+.dock-sec{padding:16px 20px;border-bottom:1px solid var(--rule-soft)}
+.dock-sec h4{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 12px;font-weight:500}
+.kv{display:flex;justify-content:space-between;gap:14px;padding:7px 0;font-size:13.5px;
+  border-bottom:1px solid var(--rule-soft)}
+.kv:last-child{border-bottom:0}
+.kv dt{color:var(--ink-2)}
+.kv dd{margin:0;font-family:'JetBrains Mono',monospace;text-align:right}
+.read{font-size:13px;color:var(--ink-2);line-height:1.65}
+.read strong{color:var(--ink);font-weight:600}
+
+.tune{max-width:1400px;margin:0 auto;padding:22px 18px 0}
+.tune-box{background:var(--deck);border:1px solid var(--rule);border-radius:10px;padding:16px 18px}
+.tune-box h4{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 5px;font-weight:500}
+.tune-box p{margin:0 0 15px;font-size:12.5px;color:var(--ink-3);max-width:62ch;line-height:1.6}
+.knobs{display:flex;gap:14px;flex-wrap:wrap}
+.knob{display:flex;flex-direction:column;gap:6px}
+.knob label{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-3)}
+.knob input,.knob select{background:var(--deck-2);border:1px solid var(--rule);border-radius:6px;
+  padding:9px 10px;color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:12.5px}
+.knob input:focus{outline:none;border-color:var(--signal)}
+
+.legend{max-width:1400px;margin:22px auto 0;padding:0 18px}
+.legend-in{border-top:1px solid var(--rule-soft);padding:20px 0 40px;columns:2;column-gap:34px;
+  font-size:12px;color:var(--ink-3);line-height:1.7}
+.legend-in p{margin:0 0 11px;break-inside:avoid}
+.legend-in strong{color:var(--ink-2);font-weight:600}
+@media(max-width:720px){.legend-in{columns:1}}
+
+/* ── сегменти ── */
+.segs{display:flex;gap:2px;background:var(--deck);border:1px solid var(--rule);border-radius:7px;padding:3px;flex:0 0 auto}
+.seg{background:none;border:0;border-radius:5px;padding:7px 11px;cursor:pointer;color:var(--ink-3);
+  font-family:'Inter Tight',sans-serif;font-size:12.5px;font-weight:500;white-space:nowrap}
+.seg[aria-pressed=true]{background:var(--deck-2);color:var(--ink)}
+.seg:focus-visible{outline:2px solid var(--signal);outline-offset:1px}
+
+/* ── общи модулни блокове ── */
+.mod-panel{max-width:1400px;margin:0 auto;padding:18px 18px 0;display:none}
+.mod-panel.on{display:block}
+.mod-market{display:block}
+body.not-market .mod-market{display:none}
+.slab{background:var(--deck);border:1px solid var(--rule);border-radius:10px;padding:18px;margin-bottom:14px}
+.slab h3{font-family:'Instrument Serif',serif;font-weight:400;font-size:22px;margin:0 0 4px;line-height:1.1}
+.slab .lede{color:var(--ink-3);font-size:12.5px;margin:0 0 16px;max-width:64ch;line-height:1.6}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;align-items:start}
+.form-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.f{display:flex;flex-direction:column;gap:6px;flex:1 1 130px;min-width:0}
+.f label{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-3)}
+.f input,.f select{background:var(--deck-2);border:1px solid var(--rule);border-radius:6px;padding:10px;
+  color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:13px;width:100%}
+.f input:focus,.f select:focus{outline:none;border-color:var(--signal)}
+.btn{background:var(--signal);color:#0B0F16;border:0;border-radius:6px;padding:10px 16px;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:none;border:1px solid var(--rule);color:var(--ink-2);font-weight:400}
+.btn.ghost:hover{border-color:var(--signal);color:var(--ink);filter:none}
+.btn.danger{background:none;border:1px solid var(--rule);color:var(--coral);font-weight:400}
+.btn:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+
+/* ── резултати ── */
+.out{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;background:var(--rule-soft);
+  border:1px solid var(--rule-soft);border-radius:8px;overflow:hidden;margin-top:16px}
+.out .cell{background:var(--deck-2);padding:13px 14px}
+.out dt{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 6px}
+.out dd{margin:0;font-family:'JetBrains Mono',monospace;font-size:19px;letter-spacing:-.02em}
+.out .sub{font-size:11px;color:var(--ink-3);margin-top:2px}
+
+/* ── графики ── */
+.plot{width:100%;height:210px;display:block;margin-top:6px}
+.plot .grid-l{stroke:var(--rule-soft);stroke-width:1}
+.plot .axis-t{font-family:'JetBrains Mono',monospace;font-size:9px;fill:var(--ink-3)}
+.plot .area-a{fill:var(--signal);opacity:.13}
+.plot .area-b{fill:var(--jade);opacity:.10}
+.plot .ln-a{fill:none;stroke:var(--signal);stroke-width:2;stroke-linejoin:round}
+.plot .ln-b{fill:none;stroke:var(--jade);stroke-width:2;stroke-linejoin:round}
+.plot .ln-c{fill:none;stroke:var(--ink-3);stroke-width:1.4;stroke-dasharray:3 3}
+.keys{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:11.5px;color:var(--ink-3)}
+.keys i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:6px}
+
+/* ── списъци ── */
+.lst{width:100%;border-collapse:collapse;margin-top:14px}
+.lst th{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);text-align:right;padding:9px 10px;border-bottom:1px solid var(--rule);font-weight:500}
+.lst th:first-child{text-align:left}
+.lst td{padding:11px 10px;font-family:'JetBrains Mono',monospace;font-size:12.5px;text-align:right;
+  border-bottom:1px solid var(--rule-soft)}
+.lst td:first-child{text-align:left;font-family:'Inter Tight',sans-serif;font-weight:600;font-size:13.5px}
+.lst tr:last-child td{border-bottom:0}
+.lst .x{background:none;border:0;color:var(--ink-3);cursor:pointer;font-size:17px;padding:0 4px;line-height:1}
+.lst .x:hover{color:var(--coral)}
+.alloc{height:6px;border-radius:3px;background:var(--rule-soft);overflow:hidden;display:flex;margin-top:14px}
+.alloc span{display:block;height:100%}
+.hint{font-size:12px;color:var(--ink-3);margin-top:12px;line-height:1.6}
+.empty-m{padding:30px 16px;text-align:center;color:var(--ink-3);font-size:13.5px}
+.empty-m b{display:block;color:var(--ink-2);margin-bottom:5px;font-size:14.5px}
+
+/* ── движение ── */
+@keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes draw{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
+@keyframes grow-w{from{width:0}}
+.anim{animation:rise .42s cubic-bezier(.22,.68,.32,1) both}
+.mod-panel.on>*{animation:rise .4s cubic-bezier(.22,.68,.32,1) both}
+.mod-panel.on>*:nth-child(2){animation-delay:.06s}
+.mod-panel.on>*:nth-child(3){animation-delay:.12s}
+tbody tr.in{animation:rise .3s cubic-bezier(.22,.68,.32,1) both}
+.gauge{animation:rise .4s cubic-bezier(.22,.68,.32,1) both}
+.gauge:nth-child(2){animation-delay:.05s}.gauge:nth-child(3){animation-delay:.1s}
+.gauge:nth-child(4){animation-delay:.15s}.gauge:nth-child(5){animation-delay:.2s}
+.plot .ln-a,.plot .ln-b{stroke-dasharray:var(--len);animation:draw 1.1s cubic-bezier(.4,0,.2,1) both}
+.alloc span{animation:grow-w .7s cubic-bezier(.22,.68,.32,1) both}
+.num-roll{display:inline-block;transition:color .3s}
+.flash-up{animation:fu .8s}.flash-dn{animation:fd .8s}
+@keyframes fu{0%{background:#4FB28633}100%{background:transparent}}
+@keyframes fd{0%{background:#E0707E33}100%{background:transparent}}
+@media(prefers-reduced-motion:reduce){
+  *,.anim,.mod-panel.on>*,tbody tr.in,.gauge,.plot .ln-a,.plot .ln-b,.alloc span{animation:none!important}}
+
+/* ── начален дашборд ── */
+.hero{max-width:1400px;margin:0 auto;padding:20px 18px 0}
+.hero-card{background:linear-gradient(152deg,var(--deck-2) 0%,var(--deck) 62%);
+  border:1px solid var(--rule);border-radius:14px;padding:22px;position:relative;overflow:hidden}
+.hero-card::after{content:'';position:absolute;top:-70px;right:-70px;width:230px;height:230px;
+  background:radial-gradient(circle,#7C8CF826,transparent 68%);pointer-events:none}
+.hero-lbl{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:9px}
+.hero-val{font-family:'JetBrains Mono',monospace;font-size:clamp(32px,9vw,46px);
+  letter-spacing:-.03em;line-height:1;font-weight:500}
+.hero-sub{margin-top:9px;font-size:13.5px;color:var(--ink-2);display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.hero-spark{margin-top:14px}
+.hero-spark svg{width:100%;height:62px;display:block}
+.strip{max-width:1400px;margin:0 auto;padding:14px 18px 0;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:10px}
+.tile{background:var(--deck);border:1px solid var(--rule);border-radius:10px;padding:14px;
+  animation:rise .4s cubic-bezier(.22,.68,.32,1) both}
+.tile:nth-child(2){animation-delay:.05s}.tile:nth-child(3){animation-delay:.1s}
+.tile:nth-child(4){animation-delay:.15s}.tile:nth-child(5){animation-delay:.2s}
+.tile dt{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 7px}
+.tile dd{margin:0;font-family:'JetBrains Mono',monospace;font-size:21px;letter-spacing:-.02em}
+.tile .foot{font-size:11.5px;color:var(--ink-3);margin-top:3px}
+.movers{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.mv-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;
+  border-bottom:1px solid var(--rule-soft);cursor:pointer}
+.mv-row:last-child{border-bottom:0}
+.mv-row:hover{opacity:.75}
+.mv-nm{font-weight:600;font-size:13.5px}
+.mv-tk{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3)}
+.mv-v{font-family:'JetBrains Mono',monospace;font-size:13px;text-align:right}
+.todo{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--rule-soft);align-items:flex-start}
+.todo:last-child{border-bottom:0}
+.todo .dot{width:6px;height:6px;border-radius:50%;background:var(--signal);margin-top:6px;flex:0 0 auto}
+.todo .dot.warn{background:var(--amber)}.todo .dot.ok{background:var(--jade)}
+.todo .tx{font-size:13px;color:var(--ink-2);line-height:1.6}
+.todo .tx b{color:var(--ink);font-weight:600}
+
+/* ── макро ── */
+.macro-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:1px;
+  background:var(--rule-soft);border:1px solid var(--rule-soft);border-radius:9px;overflow:hidden}
+.macro-cell{background:var(--deck-2);padding:15px}
+.macro-cell dt{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 7px}
+.macro-cell dd{margin:0;font-family:'JetBrains Mono',monospace;font-size:22px;letter-spacing:-.02em}
+.macro-cell .foot{font-size:11px;color:var(--ink-3);margin-top:4px;line-height:1.5}
+.curve{width:100%;height:180px}
+.sect-bar{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--rule-soft)}
+.sect-bar:last-child{border-bottom:0}
+.sect-nm{flex:0 0 132px;font-size:13px}
+.sect-track{flex:1;height:7px;background:var(--rule-soft);border-radius:4px;position:relative}
+.sect-fill{position:absolute;top:0;bottom:0;border-radius:4px;animation:grow-w .6s cubic-bezier(.22,.68,.32,1) both}
+.sect-v{flex:0 0 58px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:12.5px}
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="mast-top">
+    <div>
+      <h1 class="brand">Пулс на <em>пазара</em></h1>
+      <p class="tagline">Къде стои цената, колко струва бизнесът зад нея.</p>
+    </div>
+    <div class="pulse"><span class="led" id="led"></span><span id="stat">свързване</span></div>
+  </div>
+  <div class="rail"><i id="rail"></i></div>
+</header>
+
+<dl class="gauges mod-market" id="gauges"></dl>
+
+<nav class="nav">
+  <div class="nav-in" role="tablist">
+    <button class="tab mod" role="tab" aria-selected="true" data-mod="home">Начало</button>
+    <button class="tab mod" role="tab" aria-selected="false" data-mod="market">Пазар</button>
+    <button class="tab mod" role="tab" aria-selected="false" data-mod="folio">Портфейл<span class="ct" id="c-folio"></span></button>
+    <button class="tab mod" role="tab" aria-selected="false" data-mod="grow">Сложна лихва</button>
+    <button class="tab mod" role="tab" aria-selected="false" data-mod="loan">Кредит</button>
+    <button class="tab mod" role="tab" aria-selected="false" data-mod="budget">Бюджет</button>
+    <button class="tab mod" role="tab" aria-selected="false" data-mod="macro">Икономика</button>
+    <div class="nav-act"><button class="icon-btn" id="reload">Обнови</button></div>
+  </div>
+</nav>
+
+<div class="filter mod-market">
+  <div class="segs" id="segs">
+    <button class="seg" data-view="all" aria-pressed="true">Всичко<span class="ct" id="c-all"></span></button>
+    <button class="seg" data-view="stk" aria-pressed="false">Акции<span class="ct" id="c-stk"></span></button>
+    <button class="seg" data-view="cry" aria-pressed="false">Крипто<span class="ct" id="c-cry"></span></button>
+    <button class="seg" data-view="idx" aria-pressed="false">Метали<span class="ct" id="c-idx"></span></button>
+  </div>
+  <input class="seek" id="seek" placeholder="Търси актив или тикер" autocomplete="off">
+  <select class="sortsel" id="sort">
+    <option value="mg15">Подредба: марж при 15%</option>
+    <option value="mg20">Марж при 20%</option>
+    <option value="pos">Позиция в годината</option>
+    <option value="r14">RSI 14</option>
+    <option value="chg">Дневна промяна</option>
+    <option value="cap">Пазарна капитализация</option>
+    <option value="nm">Име</option>
+  </select>
+</div>
+
+<main class="sheet mod-market">
+  <div class="scroll">
+    <table id="grid"><tbody><tr><td class="state"><b>Зареждам пазара</b>Първите редове идват след няколко секунди.</td></tr></tbody></table>
+  </div>
+</main>
+
+<section class="tune mod-market">
+  <div class="tune-box">
+    <h4>Допускания за справедлива цена</h4>
+    <p>Справедливата цена не е факт, а следствие от тези числа. Смени растежа с два процента и виж кои компании остават подценени и в двата случая — те са по-надеждните кандидати за собствен преглед.</p>
+    <div class="knobs">
+      <div class="knob"><label for="fg">Растеж на FCF годишно %</label><input id="fg" type="number" value="8" style="width:110px"></div>
+      <div class="knob"><label for="fy">Хоризонт години</label><input id="fy" type="number" value="10" style="width:92px"></div>
+      <div class="knob"><label for="fm">Терминален множител</label><input id="fm" type="number" value="15" style="width:110px"></div>
+      <div class="knob"><label for="keyi">API ключ</label><input id="keyi" type="text" style="width:236px"></div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ═══ НАЧАЛО ═══ -->
+<section class="mod-panel" id="p-home">
+  <div class="hero"><div class="hero-card" id="home-hero"></div></div>
+  <dl class="strip" id="home-strip"></dl>
+  <div class="mod-panel on" style="padding-top:14px;display:block">
+    <div class="grid2">
+      <div class="slab"><h3>Твоите движения днес</h3>
+        <p class="lede">Кое в портфейла ти се движи най-силно.</p>
+        <div id="home-mine"></div></div>
+      <div class="slab"><h3>Какво си струва да погледнеш</h3>
+        <p class="lede">Забелязани условия в активите, които следиш.</p>
+        <div id="home-todo"></div></div>
+    </div>
+    <div class="slab"><h3>Движения на пазара</h3>
+      <p class="lede">Най-силните и най-слабите от следените активи днес.</p>
+      <div class="movers" id="home-movers"></div></div>
+  </div>
+</section>
+
+<!-- ═══ ИКОНОМИКА ═══ -->
+<section class="mod-panel" id="p-macro">
+  <div class="slab">
+    <h3>Лихви и икономика</h3>
+    <p class="lede">Лихвата на Фед е цената на парите. Когато се качва, спестяванията и облигациите стават по-привлекателни, а акциите и имотите — по-скъпи за държане. Затова тези числа стоят под всичко останало в таблото.</p>
+    <dl class="macro-grid" id="macro-cells"></dl>
+  </div>
+  <div class="slab" id="curve-box" style="display:none">
+    <h3>Крива на доходността</h3>
+    <p class="lede">Колко плаща държавата на САЩ за различни срокове. Нормално дългите срокове плащат повече. Когато късите плащат повече от дългите, кривата е обърната — исторически това е предшествало забавяне на икономиката.</p>
+    <div id="curve-plot"></div>
+  </div>
+  <div class="slab" id="sect-box" style="display:none">
+    <h3>Сектори днес</h3>
+    <p class="lede">Кои части на пазара водят и кои изостават.</p>
+    <div id="sect-list"></div>
+  </div>
+</section>
+
+<!-- ═══ ПОРТФЕЙЛ ═══ -->
+<section class="mod-panel" id="p-folio">
+  <div class="slab">
+    <h3>Портфейл</h3>
+    <p class="lede">Въведи какво притежаваш и на каква цена си купил. Стойността се смята по текущите пазарни цени, а графиката възстановява как е изглеждал портфейлът ти през последната година.</p>
+    <div class="form-row">
+      <div class="f" style="flex:1 1 150px"><label for="pf-sym">Актив</label><select id="pf-sym"></select></div>
+      <div class="f" style="flex:0 1 120px"><label for="pf-qty">Количество</label><input id="pf-qty" type="number" step="any" placeholder="10"></div>
+      <div class="f" style="flex:0 1 130px"><label for="pf-buy">Цена на покупка</label><input id="pf-buy" type="number" step="any" placeholder="250.00"></div>
+      <button class="btn" id="pf-add">Добави</button>
+    </div>
+    <div id="pf-out"></div>
+  </div>
+  <div class="slab" id="pf-chart-box" style="display:none">
+    <h3>Как се движи портфейлът</h3>
+    <p class="lede">Стойността на текущите ти позиции, изчислена назад по историческите цени. Пунктираната линия е вложената сума.</p>
+    <div id="pf-chart"></div>
+  </div>
+</section>
+
+<!-- ═══ СЛОЖНА ЛИХВА ═══ -->
+<section class="mod-panel" id="p-grow">
+  <div class="slab">
+    <h3>Сложна лихва</h3>
+    <p class="lede">Колко става една сума, ако я оставиш да работи и добавяш всеки месец. Може да вземеш реалната историческа доходност на актив от таблото вместо да гадаеш процент.</p>
+    <div class="form-row">
+      <div class="f"><label for="g-init">Начална сума</label><input id="g-init" type="number" value="5000"></div>
+      <div class="f"><label for="g-mon">Месечна вноска</label><input id="g-mon" type="number" value="300"></div>
+      <div class="f"><label for="g-yr">Години</label><input id="g-yr" type="number" value="15"></div>
+      <div class="f"><label for="g-rate">Доходност % годишно</label><input id="g-rate" type="number" step="0.1" value="10"></div>
+    </div>
+    <div class="form-row" style="margin-top:12px">
+      <div class="f" style="flex:1 1 190px"><label for="g-src">Вземи доходност от актив</label><select id="g-src"><option value="">ръчно въведена</option></select></div>
+      <div class="f" style="flex:0 1 150px"><label for="g-infl">Инфлация % годишно</label><input id="g-infl" type="number" step="0.1" value="3"></div>
+    </div>
+    <div id="g-out"></div>
+    <div id="g-chart"></div>
+  </div>
+</section>
+
+<!-- ═══ КРЕДИТ ═══ -->
+<section class="mod-panel" id="p-loan">
+  <div class="slab">
+    <h3>Кредит</h3>
+    <p class="lede">Месечна вноска, общо оскъпяване и колко спестяваш при предсрочно погасяване. Работи за ипотека, потребителски кредит и лизинг.</p>
+    <div class="form-row">
+      <div class="f"><label for="l-amt">Сума на кредита</label><input id="l-amt" type="number" value="200000"></div>
+      <div class="f"><label for="l-rate">Лихва % годишно</label><input id="l-rate" type="number" step="0.01" value="2.8"></div>
+      <div class="f"><label for="l-yr">Срок в години</label><input id="l-yr" type="number" value="25"></div>
+      <div class="f"><label for="l-extra">Допълнително месечно</label><input id="l-extra" type="number" value="0"></div>
+    </div>
+    <div id="l-out"></div>
+    <div id="l-chart"></div>
+  </div>
+</section>
+
+<!-- ═══ БЮДЖЕТ ═══ -->
+<section class="mod-panel" id="p-budget">
+  <div class="slab">
+    <h3>Бюджет</h3>
+    <p class="lede">Какво влиза, какво излиза и колко остава за инвестиране. Свободната сума се прехвърля автоматично като месечна вноска в калкулатора за сложна лихва.</p>
+    <div class="form-row">
+      <div class="f" style="flex:1 1 160px"><label for="b-name">Перо</label><input id="b-name" placeholder="Наем"></div>
+      <div class="f" style="flex:0 1 130px"><label for="b-amt">Сума месечно</label><input id="b-amt" type="number" step="any" placeholder="800"></div>
+      <div class="f" style="flex:0 1 130px"><label for="b-kind">Вид</label><select id="b-kind">
+        <option value="in">Приход</option><option value="out" selected>Разход</option></select></div>
+      <button class="btn" id="b-add">Добави</button>
+    </div>
+    <div id="b-out"></div>
+  </div>
+</section>
+
+<footer class="legend mod-market">
+  <div class="legend-in">
+    <p><strong>Скалата на позицията</strong> е една ос от годишното дъно до годишния връх. Двете тънки чертички са 50- и 200-дневната средна, плътната точка е цената сега. Когато точката е вдясно от чертичките, активът се търгува над средните си нива.</p>
+    <p><strong>Тренд</strong> брои три условия: 50-дневната над 200-дневната, цената над 50-дневната, цената над 200-дневната.</p>
+    <p><strong>RSI</strong> над 70 значи, че покупките са изпреварили обичайния темп, под 30 — обратното. Късите периоди се движат рязко; 90 и 180 дни показват по-устойчивата картина.</p>
+    <p><strong>Марж на безопасност</strong> е разстоянието между цената и справедливата стойност при избраната доходност. Плюс значи, че при твоите допускания цената е под стойността.</p>
+    <p><strong>Свободният паричен поток</strong> са парите, останали след поддръжката на бизнеса. Отрицателен нетен дълг значи, че компанията държи повече кеш, отколкото дължи.</p>
+    <p><strong>Числата описват състояние.</strong> Те не са препоръка да купуваш или продаваш и не заместват собствената ти преценка. Крипто активите нямат счетоводни отчети, затова при тях има само техническа част.</p>
+  </div>
+</footer>
+
+<div class="veil" id="veil"></div>
+<aside class="dock" id="dock" role="dialog" aria-modal="true" aria-label="Детайли"><div class="grip"></div><div id="dockBody"></div></aside>
+
+<script>
+const DEF='DlzZ4X6Vmb4aJwLndIukITAxywwV9hMi';
+let KEY=localStorage.getItem('fmpkey')||DEF;
+
+const IDX=[['SPY','S&P 500'],['GLD','Злато'],['SLV','Сребро']];
+const STK=[['AAPL','Apple'],['MSFT','Microsoft'],['NVDA','NVIDIA'],['GOOGL','Alphabet'],['AMZN','Amazon'],
+['META','Meta'],['AVGO','Broadcom'],['TSLA','Tesla'],['BRK-B','Berkshire'],['LLY','Eli Lilly'],
+['JPM','JPMorgan'],['V','Visa'],['WMT','Walmart'],['UNH','UnitedHealth'],['XOM','Exxon Mobil'],
+['ORCL','Oracle'],['MA','Mastercard'],['HD','Home Depot'],['PG','Procter & Gamble'],['COST','Costco']];
+const CRY=[['BTCUSD','Bitcoin'],['ETHUSD','Ethereum'],['XRPUSD','XRP'],['SOLUSD','Solana'],['BNBUSD','BNB'],
+['DOGEUSD','Dogecoin'],['ADAUSD','Cardano'],['TRXUSD','TRON'],['LINKUSD','Chainlink'],['AVAXUSD','Avalanche'],
+['XLMUSD','Stellar'],['LTCUSD','Litecoin'],['DOTUSD','Polkadot'],['BCHUSD','Bitcoin Cash'],['UNIUSD','Uniswap'],
+['XMRUSD','Monero'],['ETCUSD','Ethereum Classic'],['FILUSD','Filecoin'],['APTUSD','Aptos'],['ATOMUSD','Cosmos']];
+const ALL=[...IDX,...STK,...CRY];
+const GROUP={},NAME={};
+IDX.forEach(([s,n])=>{GROUP[s]='idx';NAME[s]=n});
+STK.forEach(([s,n])=>{GROUP[s]='stk';NAME[s]=n});
+CRY.forEach(([s,n])=>{GROUP[s]='cry';NAME[s]=n});
+
+const Q={},H={},F={},NOTE=[];
+let view='all',seek='',sortBy='mg15',busy=false;
+
+const B='https://financialmodelingprep.com/stable/';
+const url=p=>B+p+(p.includes('?')?'&':'?')+'apikey='+KEY;
+const nap=ms=>new Promise(r=>setTimeout(r,ms));
+const $=id=>document.getElementById(id);
+const n2=(v,d=2)=>(v==null||isNaN(v))?'—':Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const money=v=>v==null?'—':'$'+n2(v,Math.abs(v)<5?4:2);
+function big(v){if(v==null||isNaN(v))return '—';const a=Math.abs(v);
+  if(a>=1e12)return (v/1e12).toFixed(2)+' трлн';
+  if(a>=1e9)return (v/1e9).toFixed(1)+' млрд';
+  if(a>=1e6)return (v/1e6).toFixed(0)+' млн';return n2(v,0)}
+function stat(t,m){$('stat').textContent=t;$('led').className='led '+(m||'')}
+function rail(p){$('rail').style.width=p+'%'}
+async function J(p){const r=await fetch(url(p));
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const j=await r.json();if(j&&j['Error Message'])throw new Error(j['Error Message']);return j}
+
+function wilder(c,p){if(!c||c.length<p+1)return null;
+  const g=[],l=[];for(let i=1;i<c.length;i++){const d=c[i]-c[i-1];g.push(d>0?d:0);l.push(d<0?-d:0)}
+  let A=g.slice(0,p).reduce((a,b)=>a+b,0)/p,L=l.slice(0,p).reduce((a,b)=>a+b,0)/p;
+  for(let i=p;i<g.length;i++){A=(A*(p-1)+g[i])/p;L=(L*(p-1)+l[i])/p}
+  return L===0?100:100-100/(1+A/L)}
+function sma(c,p){return (!c||c.length<p)?null:c.slice(-p).reduce((a,b)=>a+b,0)/p}
+function band(c,n){if(!c||c.length<5)return null;
+  const w=c.slice(-Math.min(n,c.length)),lo=Math.min(...w),hi=Math.max(...w),p=c[c.length-1];
+  return{lo,hi,pct:hi===lo?50:(p-lo)/(hi-lo)*100}}
+function crossOf(c,a,b){if(!a||!b)return null;
+  const pa=c?sma(c.slice(0,c.length-10),50):null,pb=c?sma(c.slice(0,c.length-10),200):null;
+  if(pa&&pb){if(pa<pb&&a>b)return{t:'златен кръст',k:'sg'};if(pa>pb&&a<b)return{t:'мъртъв кръст',k:'dn'}}
+  return a>b?{t:'възходящ',k:'up'}:{t:'низходящ',k:'dn'}}
+function trend(q){if(!q||!q.price)return null;let p=0,t=0;
+  if(q.priceAvg50&&q.priceAvg200){t++;if(q.priceAvg50>q.priceAvg200)p++}
+  if(q.priceAvg50){t++;if(q.price>q.priceAvg50)p++}
+  if(q.priceAvg200){t++;if(q.price>q.priceAvg200)p++}
+  return t?{score:p,of:t}:null}
+function fairAt(s,R){const q=Q[s],f=F[s];
+  if(!q||!f||!f.fcf||f.fcf<=0||!q.marketCap||!q.price)return null;
+  const g=(+$('fg').value||0)/100,N=+$('fy').value||10,M=+$('fm').value||15;
+  const sh=q.marketCap/q.price;let pv=0,x=f.fcf;
+  for(let i=1;i<=N;i++){x*=(1+g);pv+=x/Math.pow(1+R,i)}
+  pv+=(x*M)/Math.pow(1+R,N);
+  if(f.net!=null)pv-=f.net;
+  const fv=pv/sh;return fv>0?{fv,mg:(fv-q.price)/fv*100}:null}
+
+function scaleSVG(q,c,w,h,isBig){
+  w=w||150;h=h||26;
+  const b=band(c,252)||((q.yearHigh&&q.yearLow)?{lo:q.yearLow,hi:q.yearHigh}:null);
+  if(!b||!q.price)return '<span class="mute">—</span>';
+  let lo=b.lo,hi=b.hi;
+  [q.price,q.priceAvg50,q.priceAvg200].forEach(v=>{if(v){lo=Math.min(lo,v);hi=Math.max(hi,v)}});
+  const pad=isBig?30:9,y=isBig?32:13,W=w-pad*2;
+  const X=v=>pad+(hi===lo?.5:(v-lo)/(hi-lo))*W;
+  let o=`<svg class="${isBig?'bigscale':'scale'}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="позиция на цената">`;
+  o+=`<line class="track" x1="${pad}" y1="${y}" x2="${w-pad}" y2="${y}"/>`;
+  if(q.priceAvg50&&q.priceAvg200){
+    const a=X(Math.min(q.priceAvg50,q.priceAvg200)),z=X(Math.max(q.priceAvg50,q.priceAvg200));
+    o+=`<line class="band" x1="${a}" y1="${y}" x2="${z}" y2="${y}"/>`}
+  [q.priceAvg200,q.priceAvg50].forEach(v=>{if(v)o+=`<line class="ma" x1="${X(v)}" y1="${y-(isBig?9:5)}" x2="${X(v)}" y2="${y+(isBig?9:5)}"/>`});
+  const px=X(q.price);
+  const col=q.priceAvg200?(q.price>q.priceAvg200?'#4FB286':'#E0707E'):'#E8ECF4';
+  o+=`<circle cx="${px}" cy="${y}" r="${isBig?5:3.4}" fill="${col}"/>`;
+  if(isBig){
+    o+=`<text class="lbl" x="${pad}" y="${y+24}" text-anchor="start">${n2(lo,0)}</text>`;
+    o+=`<text class="lbl" x="${w-pad}" y="${y+24}" text-anchor="end">${n2(hi,0)}</text>`;
+    o+=`<text class="lbl" x="${Math.min(Math.max(px,pad+12),w-pad-12)}" y="${y-15}" text-anchor="middle" fill="${col}">сега</text>`}
+  return o+'</svg>'}
+
+function sparkSVG(c){
+  if(!c||c.length<8)return '<span class="mute">—</span>';
+  const w=74,h=22,d=c.slice(-90),lo=Math.min(...d),hi=Math.max(...d);
+  const X=i=>i/(d.length-1)*w,Y=v=>hi===lo?h/2:h-2-((v-lo)/(hi-lo))*(h-4);
+  const col=d[d.length-1]>=d[0]?'#4FB286':'#E0707E';
+  let p='M'+X(0).toFixed(1)+' '+Y(d[0]).toFixed(1);
+  for(let i=1;i<d.length;i++)p+='L'+X(i).toFixed(1)+' '+Y(d[i]).toFixed(1);
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" role="img" aria-label="движение за 90 дни"><path d="${p}" stroke="${col}"/></svg>`}
+
+function rowsFor(){
+  let list=ALL.filter(([s])=>view==='all'||GROUP[s]===view);
+  if(seek){const k=seek.toLowerCase();
+    list=list.filter(([s,n])=>s.toLowerCase().includes(k)||n.toLowerCase().includes(k))}
+  const data=list.map(([s,n])=>{
+    const q=Q[s],c=H[s],bd=band(c,252);
+    return{s,n,q,c,r14:wilder(c,14),f15:fairAt(s,.15),f20:fairAt(s,.20),
+      pos:bd?bd.pct:((q&&q.yearHigh&&q.yearLow&&q.yearHigh>q.yearLow)?(q.price-q.yearLow)/(q.yearHigh-q.yearLow)*100:null)}});
+  const K={mg15:d=>d.f15?d.f15.mg:-1e9,mg20:d=>d.f20?d.f20.mg:-1e9,
+    pos:d=>d.pos==null?1e9:d.pos,r14:d=>d.r14==null?1e9:d.r14,
+    chg:d=>(d.q&&d.q.changePercentage!=null)?-d.q.changePercentage:1e9,
+    cap:d=>(d.q&&d.q.marketCap)?-d.q.marketCap:1e9}[sortBy];
+  if(sortBy==='nm')data.sort((a,b)=>a.n.localeCompare(b.n,'bg'));
+  else if(sortBy==='mg15'||sortBy==='mg20')data.sort((a,b)=>K(b)-K(a));
+  else data.sort((a,b)=>K(a)-K(b));
+  return data}
+
+const HEAD=['Актив','Цена','Ден','90 дни','Позиция в годината','Тренд','RSI 7','RSI 14','RSI 30','RSI 90','RSI 180','Справ. @15%','Марж','Кап.'];
+const SORTMAP={0:'nm',1:'cap',2:'chg',4:'pos',7:'r14',11:'mg15',12:'mg15',13:'cap'};
+
+function paint(){
+  const data=rowsFor(),t=$('grid');
+  $('c-all').textContent=ALL.length;$('c-stk').textContent=STK.length;
+  $('c-cry').textContent=CRY.length;$('c-idx').textContent=IDX.length;
+  if(!data.length){t.innerHTML='<tbody><tr><td class="state"><b>Няма съвпадение</b>Опитай друг тикер или изчисти търсенето.</td></tr></tbody>';return}
+  let h='<thead><tr>'+HEAD.map((l,i)=>`<th data-i="${i}">${l}</th>`).join('')+'</tr></thead><tbody>';
+  data.forEach(d=>{
+    const q=d.q;
+    if(!q||q.__err){
+      h+=`<tr data-s="${d.s}"><td class="id"><div class="id-nm">${d.n}</div><div class="id-tk">${d.s}</div></td>
+        <td colspan="13" class="mute" style="text-align:left">${(q&&q.__err)?q.__err:'<span class="skel" style="width:190px"></span>'}</td></tr>`;return}
+    const x=crossOf(d.c,q.priceAvg50,q.priceAvg200);
+    const rs=p=>{const v=wilder(d.c,p);
+      return v==null?'<td class="mute">—</td>':`<td class="${v>=70?'rsi-hi':(v<=30?'rsi-lo':'')}">${n2(v,1)}</td>`};
+    h+=`<tr data-s="${d.s}">
+      <td class="id"><div class="id-nm">${d.n}</div><div class="id-tk">${d.s}</div></td>
+      <td>${money(q.price)}</td>
+      <td class="${q.changePercentage>=0?'up':'dn'}">${q.changePercentage!=null?(q.changePercentage>=0?'+':'')+n2(q.changePercentage,2)+'%':'—'}</td>
+      <td>${sparkSVG(d.c)}</td>
+      <td>${scaleSVG(q,d.c)}</td>
+      <td>${x?`<span class="chip chip-${x.k}">${x.t}</span>`:'<span class="mute">—</span>'}</td>
+      ${rs(7)}${rs(14)}${rs(30)}${rs(90)}${rs(180)}
+      <td>${d.f15?money(d.f15.fv):'<span class="mute">—</span>'}</td>
+      <td class="${d.f15?(d.f15.mg>=0?'up':'dn'):''}">${d.f15?(d.f15.mg>=0?'+':'')+n2(d.f15.mg,1)+'%':'—'}</td>
+      <td class="mute">${big(q.marketCap)}</td></tr>`});
+  t.innerHTML=h+'</tbody>';
+  t.querySelectorAll('thead th').forEach(th=>th.onclick=()=>{
+    const k=SORTMAP[th.dataset.i];if(k){sortBy=k;$('sort').value=k;paint()}});
+  t.querySelectorAll('tbody tr').forEach(tr=>tr.onclick=()=>openDock(tr.dataset.s));
+  staggerRows(t)}
+
+function paintGauges(){
+  const live=ALL.map(([s])=>Q[s]).filter(q=>q&&!q.__err&&q.price);
+  if(!live.length){$('gauges').innerHTML='';return}
+  const den=live.filter(q=>q.priceAvg200).length;
+  const ab=live.filter(q=>q.priceAvg200&&q.price>q.priceAvg200).length;
+  const rs=ALL.map(([s])=>wilder(H[s],14)).filter(v=>v!=null);
+  const avg=rs.length?rs.reduce((a,b)=>a+b,0)/rs.length:null;
+  const up=live.filter(q=>q.changePercentage>0).length;
+  const best=ALL.map(([s,n])=>({n,f:fairAt(s,.15)})).filter(o=>o.f).sort((a,b)=>b.f.mg-a.f.mg)[0];
+  const g=[
+    ['Над 200-дневната',`${ab}<span style="font-size:14px;color:var(--ink-3)">/${den||'—'}</span>`,
+      den?(ab/den>=.6?'широк възход':(ab/den<=.4?'слабост в основата':'разделен пазар')):''],
+    ['Среден RSI 14',avg==null?'—':n2(avg,1),
+      avg==null?'изчаквам история':(avg>=65?'напрежение нагоре':(avg<=35?'напрежение надолу':'спокоен диапазон'))],
+    ['Растящи днес',`${up}<span style="font-size:14px;color:var(--ink-3)">/${live.length}</span>`,''],
+    ['Най-голям марж',best?best.n:'—',best?(best.f.mg>=0?'+':'')+n2(best.f.mg,0)+'% при 15%':'изчаквам отчети']];
+  $('gauges').innerHTML=g.map(([k,v,f])=>
+    `<div class="gauge"><dt>${k}</dt><dd>${v}</dd>${f?`<div class="foot">${f}</div>`:''}</div>`).join('')}
+
+function openDock(s){
+  const q=Q[s];if(!q||q.__err)return;
+  const c=H[s],f=F[s],t=trend(q),x=crossOf(c,q.priceAvg50,q.priceAvg200);
+  const f15=fairAt(s,.15),f20=fairAt(s,.20),rr={};
+  [7,14,30,90,180].forEach(p=>rr[p]=wilder(c,p));
+  const d50=q.priceAvg50?(q.price-q.priceAvg50)/q.priceAvg50*100:null;
+  const d200=q.priceAvg200?(q.price-q.priceAvg200)/q.priceAvg200*100:null;
+  const per=[[21,'1 месец'],[63,'3 месеца'],[126,'6 месеца'],[252,'1 година']].map(([n,l])=>{
+    const b=band(c,n);return b?`<div class="kv"><dt>${l}</dt><dd>${n2(b.pct,0)}% от диапазона<br><span class="mute" style="font-size:11px">${n2(b.lo,0)} – ${n2(b.hi,0)}</span></dd></div>`:''}).join('');
+  const story=[];
+  if(t)story.push(t.score===t.of?'Цената е над двете средни и краткосрочната е над дългосрочната — <strong>възходящ по всички признаци</strong>.':
+    (t.score===0?'Цената е под двете средни — <strong>низходящ по всички признаци</strong>.':
+    `Изпълнени са <strong>${t.score} от ${t.of}</strong> условия за възходящ тренд — картината е смесена.`));
+  if(rr[14]!=null)story.push(rr[14]>=70?'RSI над 70: покупките са изпреварили обичайния темп.':
+    (rr[14]<=30?'RSI под 30: продажбите са изпреварили обичайния темп.':'RSI е в спокойния диапазон.'));
+  if(f15)story.push(f15.mg>=0?`При растеж ${$('fg').value}% и целева доходност 15% цената е <strong>${n2(f15.mg,0)}% под</strong> изчислената стойност.`:
+    `При тези допускания цената е <strong>${n2(-f15.mg,0)}% над</strong> изчислената стойност.`);
+  const fund=GROUP[s]==='cry'?'':`
+    <div class="dock-sec"><h4>Бизнесът</h4>
+      <div class="kv"><dt>Пазарна капитализация</dt><dd>${big(q.marketCap)}</dd></div>
+      <div class="kv"><dt>Общ дълг</dt><dd>${f?big(f.debt):'—'}</dd></div>
+      <div class="kv"><dt>Кеш</dt><dd>${f?big(f.cash):'—'}</dd></div>
+      <div class="kv"><dt>Нетен дълг</dt><dd class="${f&&f.net<0?'up':''}">${f?big(f.net):'—'}</dd></div>
+      <div class="kv"><dt>Свободен паричен поток</dt><dd class="${f&&f.fcf>0?'up':'dn'}">${f?big(f.fcf):'—'}</dd></div>
+      <div class="kv"><dt>Дълг към EBITDA</dt><dd>${(f&&f.de!=null)?n2(f.de,2):'—'}</dd></div>
+      <div class="kv"><dt>Оперативен марж</dt><dd>${(f&&f.om!=null)?n2(f.om*100,1)+'%':'—'}</dd></div>
+      <div class="kv"><dt>Възвръщаемост на капитала</dt><dd>${(f&&f.roe!=null)?n2(f.roe*100,1)+'%':'—'}</dd></div>
+      <div class="kv"><dt>P/E</dt><dd>${q.pe?n2(q.pe,1):'—'}</dd></div></div>
+    <div class="dock-sec"><h4>Справедлива цена</h4>
+      <div class="kv"><dt>При 15% доходност</dt><dd>${f15?money(f15.fv):'—'} ${f15?`<span class="${f15.mg>=0?'up':'dn'}">(${f15.mg>=0?'+':''}${n2(f15.mg,0)}%)</span>`:''}</dd></div>
+      <div class="kv"><dt>При 20% доходност</dt><dd>${f20?money(f20.fv):'—'} ${f20?`<span class="${f20.mg>=0?'up':'dn'}">(${f20.mg>=0?'+':''}${n2(f20.mg,0)}%)</span>`:''}</dd></div></div>`;
+  $('dockBody').innerHTML=`
+    <div class="dock-hd">
+      <div><h3>${NAME[s]}</h3><div class="tk">${s}</div></div>
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div class="dock-px"><div class="v">${money(q.price)}</div>
+          <div class="${q.changePercentage>=0?'up':'dn'}" style="font-size:12px">${q.changePercentage!=null?(q.changePercentage>=0?'+':'')+n2(q.changePercentage,2)+'%':''}</div></div>
+        <button class="shut" aria-label="Затвори" id="shutBtn">×</button></div></div>
+    <div class="dock-sec"><h4>Къде стои цената</h4>
+      ${scaleSVG(q,c,340,64,true)}
+      <div class="kv"><dt>Спрямо 50-дневната</dt><dd class="${d50>=0?'up':'dn'}">${d50==null?'—':(d50>=0?'+':'')+n2(d50,1)+'%'}</dd></div>
+      <div class="kv"><dt>Спрямо 200-дневната</dt><dd class="${d200>=0?'up':'dn'}">${d200==null?'—':(d200>=0?'+':'')+n2(d200,1)+'%'}</dd></div>
+      <div class="kv"><dt>Тренд</dt><dd>${x?`<span class="chip chip-${x.k}">${x.t}</span>`:'—'}</dd></div></div>
+    <div class="dock-sec"><h4>Позиция по периоди</h4>${per||'<div class="read">Няма исторически данни за този актив.</div>'}</div>
+    <div class="dock-sec"><h4>RSI</h4>
+      ${[7,14,30,90,180].map(p=>`<div class="kv"><dt>${p} дни</dt><dd class="${rr[p]>=70?'rsi-hi':(rr[p]<=30?'rsi-lo':'')}">${rr[p]==null?'—':n2(rr[p],1)}</dd></div>`).join('')}</div>
+    ${fund}
+    <div class="dock-sec" style="border-bottom:0"><h4>Прочит</h4>
+      <div class="read">${story.join(' ')||'Изчаквам данните.'}</div></div>`;
+  $('shutBtn').onclick=shutDock;
+  $('dock').classList.add('on');$('veil').classList.add('on')}
+function shutDock(){$('dock').classList.remove('on');$('veil').classList.remove('on')}
+
+async function load(){
+  if(busy)return;busy=true;$('reload').disabled=true;NOTE.length=0;rail(0);
+  ALL.forEach(([s])=>{delete Q[s];delete H[s];delete F[s]});
+  paint();paintGauges();
+  let any=false;
+  stat('котировки','work');
+  try{const d=await J('batch-quote?symbols='+encodeURIComponent(ALL.map(a=>a[0]).join(',')));
+    (Array.isArray(d)?d:[]).forEach(q=>{Q[q.symbol]=q;any=true})}catch(e){}
+  if(!any){
+    for(let i=0;i<ALL.length;i++){const s=ALL[i][0];
+      stat('котировки '+(i+1)+'/'+ALL.length,'work');
+      try{const d=await J('quote?symbol='+encodeURIComponent(s));
+        const q=Array.isArray(d)?d[0]:d;
+        if(q&&q.symbol){Q[s]=q;any=true}else Q[s]={__err:'няма данни'}}
+      catch(e){Q[s]={__err:e.message}}
+      rail((i+1)/ALL.length*12);
+      if(i%5===4){paint();paintGauges()}
+      await nap(55)}}
+  ALL.forEach(([s])=>{if(!Q[s])Q[s]={__err:'няма данни'}});
+  paint();paintGauges();paintHome();rail(12);
+  if(!any){stat('ключът не дава достъп','fail');busy=false;$('reload').disabled=false;return}
+
+  const from=new Date(Date.now()-800*864e5).toISOString().slice(0,10);
+  let blocked=false;
+  for(let i=0;i<ALL.length;i++){const s=ALL[i][0];
+    if(blocked){H[s]=[];continue}
+    stat('история '+(i+1)+'/'+ALL.length,'work');
+    try{const h=await J('historical-price-eod/full?symbol='+s+'&from='+from);
+      const a=Array.isArray(h)?h:(h.historical||[]);
+      H[s]=a.map(z=>z.close).filter(z=>z!=null).reverse()}
+    catch(e){H[s]=[];if((e.message||'').includes('402')){blocked=true;NOTE.push('историята изисква платен план')}}
+    rail(12+(i+1)/ALL.length*48);
+    if(i%4===3){paint();paintGauges();paintFolio();paintHome()}
+    await nap(55)}
+  paint();paintGauges();
+
+  for(let i=0;i<STK.length;i++){const s=STK[i][0];
+    stat('отчети '+(i+1)+'/'+STK.length,'work');
+    try{const r=await Promise.all([
+      J('balance-sheet-statement?symbol='+s+'&limit=1').catch(()=>null),
+      J('cash-flow-statement?symbol='+s+'&limit=1').catch(()=>null),
+      J('key-metrics?symbol='+s+'&limit=1').catch(()=>null),
+      J('ratios?symbol='+s+'&limit=1').catch(()=>null)]);
+      const b=r[0]&&r[0][0],cf=r[1]&&r[1][0],k=r[2]&&r[2][0],rt=r[3]&&r[3][0];
+      const debt=b?b.totalDebt:null;
+      const cash=b?(b.cashAndShortTermInvestments!=null?b.cashAndShortTermInvestments:b.cashAndCashEquivalents):null;
+      F[s]={debt,cash,net:(debt!=null&&cash!=null)?debt-cash:null,fcf:cf?cf.freeCashFlow:null,
+        de:k?k.netDebtToEBITDA:null,om:rt?rt.operatingProfitMargin:null,roe:rt?rt.returnOnEquity:null}}
+    catch(e){F[s]={}}
+    rail(60+(i+1)/STK.length*40);
+    if(i%3===2){paint();paintGauges()}
+    await nap(55)}
+  paint();paintGauges();paintFolio();paintHome();rail(100);
+  stat(new Date().toLocaleTimeString('bg-BG',{hour:'2-digit',minute:'2-digit'})+(NOTE.length?' · '+NOTE[0]:''),'live');
+  setTimeout(()=>rail(0),900);
+  busy=false;$('reload').disabled=false}
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected','false'));
+  b.setAttribute('aria-selected','true');view=b.dataset.view;paint()});
+$('seek').oninput=e=>{seek=e.target.value.trim();paint()};
+$('sort').onchange=e=>{sortBy=e.target.value;paint()};
+$('reload').onclick=load;
+$('veil').onclick=shutDock;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')shutDock()});
+['fg','fy','fm'].forEach(id=>$(id).onchange=()=>{paint();paintGauges()});
+
+/* ══════════ ОБЩИ ИНСТРУМЕНТИ ══════════ */
+const BGN=v=>(v==null||isNaN(v))?'—':Number(v).toLocaleString('bg-BG',{maximumFractionDigits:0})+' лв.';
+const USD=v=>(v==null||isNaN(v))?'—':'$'+Number(v).toLocaleString('en-US',{maximumFractionDigits:0});
+const store={
+  get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+function cells(arr){return '<dl class="out">'+arr.map(a=>
+  `<div class="cell"><dt>${a[0]}</dt><dd${a[3]?' class="'+a[3]+'"':''}>${a[1]}</dd>${a[2]?`<div class="sub">${a[2]}</div>`:''}</div>`).join('')+'</dl>'}
+
+/* линейна графика: серии [{d:[числа], cls:'ln-a', area:true, name:''}] */
+function plot(series,labels,fmt){
+  const W=740,H=210,L=52,R=12,T=14,Bm=26;
+  const all=series.flatMap(s=>s.d).filter(v=>v!=null&&!isNaN(v));
+  if(!all.length)return '';
+  let lo=Math.min(...all),hi=Math.max(...all);
+  if(lo===hi){hi=lo+1}
+  const span=hi-lo;lo-=span*.06;hi+=span*.06;
+  const n=Math.max(...series.map(s=>s.d.length));
+  const X=i=>L+(n<2?0:i/(n-1))*(W-L-R);
+  const Y=v=>T+(1-(v-lo)/(hi-lo))*(H-T-Bm);
+  let o=`<svg class="plot" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
+  for(let g=0;g<=4;g++){const v=lo+(hi-lo)*g/4,y=Y(v);
+    o+=`<line class="grid-l" x1="${L}" y1="${y.toFixed(1)}" x2="${W-R}" y2="${y.toFixed(1)}"/>`;
+    o+=`<text class="axis-t" x="${L-7}" y="${(y+3).toFixed(1)}" text-anchor="end">${fmt?fmt(v):Math.round(v)}</text>`}
+  series.forEach(s=>{
+    if(!s.d.length)return;
+    let p='';
+    s.d.forEach((v,i)=>{if(v==null||isNaN(v))return;p+=(p?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)});
+    if(s.area&&p)o+=`<path class="${s.area}" d="${p}L${X(s.d.length-1).toFixed(1)} ${Y(lo).toFixed(1)}L${X(0).toFixed(1)} ${Y(lo).toFixed(1)}Z"/>`;
+    o+=`<path class="${s.cls}" d="${p}"/>`});
+  if(labels&&labels.length){
+    const step=Math.max(1,Math.ceil(labels.length/5));
+    labels.forEach((t,i)=>{if(i%step&&i!==labels.length-1)return;
+      o+=`<text class="axis-t" x="${X(i).toFixed(1)}" y="${H-8}" text-anchor="middle">${t}</text>`})}
+  return o+'</svg>'}
+function keys(items){return '<div class="keys">'+items.map(k=>
+  `<span><i style="background:${k[1]}"></i>${k[0]}</span>`).join('')+'</div>'}
+
+/* ══════════ ПОРТФЕЙЛ ══════════ */
+let FOLIO=store.get('folio',[]);
+function folioOptions(){
+  const sel=$('pf-sym'),g=$('g-src');
+  if(sel&&!sel.dataset.done){
+    sel.innerHTML=ALL.map(([s,n])=>`<option value="${s}">${n} · ${s}</option>`).join('');
+    sel.dataset.done='1'}
+  if(g&&!g.dataset.done){
+    g.innerHTML='<option value="">ръчно въведена</option>'+
+      ALL.map(([s,n])=>`<option value="${s}">${n} · ${s}</option>`).join('');
+    g.dataset.done='1'}}
+function folioSave(){store.set('folio',FOLIO)}
+function folioAdd(){
+  const s=$('pf-sym').value,q=parseFloat($('pf-qty').value),b=parseFloat($('pf-buy').value);
+  if(!s||!q||q<=0){$('pf-qty').focus();return}
+  const ex=FOLIO.find(p=>p.s===s);
+  if(ex){const tot=ex.q+q;ex.b=((ex.b*ex.q)+(b||ex.b)*q)/tot;ex.q=tot}
+  else FOLIO.push({s,q,b:b||(Q[s]&&Q[s].price)||0});
+  folioSave();$('pf-qty').value='';$('pf-buy').value='';paintFolio()}
+function folioDel(s){FOLIO=FOLIO.filter(p=>p.s!==s);folioSave();paintFolio()}
+const HUE=['#7C8CF8','#4FB286','#D9A441','#E0707E','#5BC0BE','#A98CF8','#E39774','#6C8AE4','#8FBF6B','#C77DBB'];
+
+function paintFolio(){
+  const box=$('pf-out');if(!box)return;
+  $('c-folio').textContent=FOLIO.length||'';
+  if(!FOLIO.length){
+    box.innerHTML='<div class="empty-m"><b>Портфейлът е празен</b>Избери актив отгоре, въведи количество и цена на покупка.</div>';
+    $('pf-chart-box').style.display='none';return}
+  let val=0,cost=0;
+  const rows=FOLIO.map(p=>{
+    const q=Q[p.s],px=q&&!q.__err?q.price:null;
+    const v=px!=null?px*p.q:null,c=p.b*p.q;
+    if(v!=null)val+=v;cost+=c;
+    return{...p,px,v,c,pl:v!=null?v-c:null,plp:(v!=null&&c)?(v-c)/c*100:null}});
+  const pl=val-cost, plp=cost?pl/cost*100:0;
+  const day=rows.reduce((a,r)=>{const q=Q[r.s];
+    return a+((q&&q.changePercentage!=null&&r.v!=null)?r.v*(q.changePercentage/100):0)},0);
+  box.innerHTML=cells([
+    ['Стойност сега',USD(val),FOLIO.length+' позиции'],
+    ['Вложено',USD(cost),''],
+    ['Печалба / загуба',(pl>=0?'+':'')+USD(Math.abs(pl)).replace('$','$'),(plp>=0?'+':'')+n2(plp,1)+'%',pl>=0?'up':'dn'],
+    ['Днес',(day>=0?'+':'')+USD(Math.abs(day)),val?((day/val*100>=0?'+':'')+n2(day/val*100,2)+'%'):'',day>=0?'up':'dn']
+  ])
+  +'<div class="alloc">'+rows.filter(r=>r.v).sort((a,b)=>b.v-a.v)
+    .map((r,i)=>`<span style="width:${(r.v/val*100).toFixed(2)}%;background:${HUE[i%HUE.length]}" title="${NAME[r.s]}"></span>`).join('')+'</div>'
+  +'<table class="lst"><thead><tr><th>Актив</th><th>Бр.</th><th>Средна цена</th><th>Сега</th><th>Стойност</th><th>П/З</th><th>Дял</th><th></th></tr></thead><tbody>'
+  +rows.sort((a,b)=>(b.v||0)-(a.v||0)).map((r,i)=>`<tr>
+      <td><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:${HUE[i%HUE.length]};margin-right:7px"></span>${NAME[r.s]||r.s}</td>
+      <td>${n2(r.q,r.q<1?4:2)}</td><td>${money(r.b)}</td><td>${r.px!=null?money(r.px):'<span class="mute">—</span>'}</td>
+      <td>${r.v!=null?USD(r.v):'<span class="mute">—</span>'}</td>
+      <td class="${r.pl>=0?'up':'dn'}">${r.pl==null?'—':(r.pl>=0?'+':'')+n2(r.plp,1)+'%'}</td>
+      <td class="mute">${r.v!=null&&val?n2(r.v/val*100,1)+'%':'—'}</td>
+      <td><button class="x" data-del="${r.s}" aria-label="Премахни">×</button></td></tr>`).join('')
+  +'</tbody></table>';
+  box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>folioDel(b.dataset.del));
+  paintFolioChart(rows,cost)}
+
+function paintFolioChart(rows,cost){
+  setTimeout(()=>animatePaths($('pf-chart')),20);
+  const have=rows.filter(r=>H[r.s]&&H[r.s].length>30);
+  const box=$('pf-chart-box');
+  if(!have.length){box.style.display='none';return}
+  box.style.display='';
+  const len=Math.min(252,...have.map(r=>H[r.s].length));
+  const vals=[];
+  for(let i=len;i>0;i--){
+    let v=0;have.forEach(r=>{const h=H[r.s];v+=h[h.length-i]*r.q});
+    vals.push(v)}
+  const labels=['преди година','','','','днес'];
+  $('pf-chart').innerHTML=plot([
+    {d:vals,cls:'ln-a',area:'area-a'},
+    {d:vals.map(()=>cost),cls:'ln-c'}],labels,v=>Math.round(v/1000)+'k')
+    +keys([['Стойност на позициите','#7C8CF8'],['Вложена сума','#55617A']])
+    +`<div class="hint">Изчислено с текущите ти количества по историческите цени, затова е "какво щеше да струва това, което държиш сега" — не отчита кога точно си купувал.</div>`}
+
+/* ══════════ СЛОЖНА ЛИХВА ══════════ */
+function cagrOf(s){const h=H[s];if(!h||h.length<200)return null;
+  const yrs=h.length/252,first=h[0],last=h[h.length-1];
+  if(!first||first<=0)return null;
+  return (Math.pow(last/first,1/yrs)-1)*100}
+function calcGrow(){
+  const P=+$('g-init').value||0,M=+$('g-mon').value||0,Y=+$('g-yr').value||0;
+  const r=(+$('g-rate').value||0)/100,inf=(+$('g-infl').value||0)/100;
+  if(Y<=0){$('g-out').innerHTML='';$('g-chart').innerHTML='';return}
+  const m=r/12,months=Math.round(Y*12);
+  const bal=[],put=[];let b=P,c=P;
+  for(let i=0;i<=months;i++){
+    if(i){b=b*(1+m)+M;c+=M}
+    if(i%Math.max(1,Math.round(months/120))===0||i===months){bal.push(b);put.push(c)}}
+  const fin=b,inv=c,gain=fin-inv;
+  const real=fin/Math.pow(1+inf,Y);
+  $('g-out').innerHTML=cells([
+    ['След '+Y+' години',USD(fin),'',''],
+    ['Вложени пари',USD(inv),M?USD(M)+' месечно':''],
+    ['Спечелено от лихвата',USD(gain),inv?'×'+n2(fin/inv,2)+' от вложеното':'','up'],
+    ['В днешни пари',USD(real),'при '+n2(inf*100,1)+'% инфлация']]);
+  const lab=[];for(let i=0;i<bal.length;i++)lab.push('');
+  lab[0]='сега';lab[lab.length-1]=Y+' г.';
+  if(bal.length>4){lab[Math.floor(bal.length/2)]=Math.round(Y/2)+' г.'}
+  $('g-chart').innerHTML=plot([
+    {d:bal,cls:'ln-a',area:'area-a'},{d:put,cls:'ln-c'}],lab,v=>Math.round(v/1000)+'k')
+    +keys([['Стойност със сложна лихва','#7C8CF8'],['Само вноските','#55617A']]);
+  animatePaths($('g-chart'))}
+function growFromAsset(){
+  const s=$('g-src').value;if(!s)return;
+  const c=cagrOf(s);
+  if(c==null){$('g-src').value='';return}
+  $('g-rate').value=n2(c,1);calcGrow()}
+
+/* ══════════ КРЕДИТ ══════════ */
+function calcLoan(){
+  setTimeout(()=>animatePaths($('l-chart')),20);
+  const A=+$('l-amt').value||0,r=(+$('l-rate').value||0)/100/12,N=Math.round((+$('l-yr').value||0)*12);
+  const extra=+$('l-extra').value||0;
+  if(A<=0||N<=0){$('l-out').innerHTML='';$('l-chart').innerHTML='';return}
+  const pay=r===0?A/N:A*r/(1-Math.pow(1+r,-N));
+  let bal=A,paid=0,inte=0,mo=0;
+  const bals=[],prins=[],ints=[];
+  while(bal>0.01&&mo<N*3){
+    const i=bal*r,p=Math.min(pay+extra-i,bal);
+    if(p<=0)break;
+    bal-=p;paid+=p+i;inte+=i;mo++;
+    if(mo%3===0||bal<=0.01){bals.push(Math.max(bal,0));prins.push(paid-inte);ints.push(inte)}}
+  const base=r===0?A:pay*N;
+  $('l-out').innerHTML=cells([
+    ['Месечна вноска',USD(pay),extra?'+ '+USD(extra)+' допълнително':''],
+    ['Общо ще платиш',USD(paid),n2(mo/12,1)+' години'],
+    ['От тях лихва',USD(inte),A?n2(inte/A*100,0)+'% оскъпяване':'','dn'],
+    extra>0?['Спестено с предсрочно',USD(base-paid),n2(N/12-mo/12,1)+' г. по-рано','up']
+           :['Оскъпяване',n2(paid/A,2)+'×','за целия период']]);
+  const lab=[];bals.forEach(()=>lab.push(''));
+  lab[0]='старт';lab[lab.length-1]=n2(mo/12,0)+' г.';
+  $('l-chart').innerHTML=plot([
+    {d:bals,cls:'ln-a',area:'area-a'},{d:ints,cls:'ln-b'}],lab,v=>Math.round(v/1000)+'k')
+    +keys([['Остатък по кредита','#7C8CF8'],['Платена лихва','#4FB286']])
+    +`<div class="hint">Ако добавиш дори малка сума към вноската, тя отива изцяло в главницата — затова ефектът върху срока е по-голям, отколкото изглежда.</div>`}
+
+/* ══════════ БЮДЖЕТ ══════════ */
+let BUDGET=store.get('budget',[]);
+function budgetAdd(){
+  const n=$('b-name').value.trim(),a=parseFloat($('b-amt').value),k=$('b-kind').value;
+  if(!n||!a||a<=0){$('b-name').focus();return}
+  BUDGET.push({n,a,k});store.set('budget',BUDGET);
+  $('b-name').value='';$('b-amt').value='';paintBudget()}
+function budgetDel(i){BUDGET.splice(i,1);store.set('budget',BUDGET);paintBudget()}
+function paintBudget(){
+  const box=$('b-out');if(!box)return;
+  if(!BUDGET.length){
+    box.innerHTML='<div class="empty-m"><b>Още няма пера</b>Започни с приход — заплата — после добави основните разходи.</div>';return}
+  const inc=BUDGET.filter(b=>b.k==='in').reduce((a,b)=>a+b.a,0);
+  const exp=BUDGET.filter(b=>b.k==='out').reduce((a,b)=>a+b.a,0);
+  const free=inc-exp,rate=inc?free/inc*100:0;
+  box.innerHTML=cells([
+    ['Приходи',BGN(inc),''],
+    ['Разходи',BGN(exp),inc?n2(exp/inc*100,0)+'% от приходите':''],
+    ['Остава',BGN(free),'',free>=0?'up':'dn'],
+    ['Норма на спестяване',n2(rate,0)+'%',rate>=20?'здравословно ниво':(rate>=10?'има накъде':'разходите изяждат приходите'),rate>=20?'up':(rate<0?'dn':'')]])
+  +'<table class="lst"><thead><tr><th>Перо</th><th>Вид</th><th>Месечно</th><th>Годишно</th><th></th></tr></thead><tbody>'
+  +BUDGET.map((b,i)=>`<tr><td>${b.n}</td>
+      <td><span class="chip ${b.k==='in'?'chip-up':'chip-dn'}">${b.k==='in'?'приход':'разход'}</span></td>
+      <td class="${b.k==='in'?'up':'dn'}">${b.k==='in'?'+':'−'}${BGN(b.a)}</td>
+      <td class="mute">${BGN(b.a*12)}</td>
+      <td><button class="x" data-bi="${i}" aria-label="Премахни">×</button></td></tr>`).join('')
+  +'</tbody></table>'
+  +(free>0?`<div class="hint">Свободните ${BGN(free)} месечно са прехвърлени като вноска в калкулатора за сложна лихва — виж какво стават след години.</div>`:'');
+  box.querySelectorAll('[data-bi]').forEach(b=>b.onclick=()=>budgetDel(+b.dataset.bi));
+  if(free>0&&$('g-mon')){$('g-mon').value=Math.round(free);calcGrow()}}
+
+
+/* ══════════ АНИМАЦИИ ══════════ */
+const RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function countUp(el,to,fmt,ms){
+  if(RM||to==null||isNaN(to)){el.textContent=fmt(to);return}
+  const from=parseFloat(el.dataset.v||0)||0;
+  if(from===to){el.textContent=fmt(to);return}
+  const t0=performance.now(),D=ms||620;
+  (function step(t){
+    const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);
+    el.textContent=fmt(from+(to-from)*e);
+    if(k<1)requestAnimationFrame(step);else{el.textContent=fmt(to);el.dataset.v=to}})(t0)}
+function animatePaths(root){
+  if(RM)return;
+  (root||document).querySelectorAll('.plot path.ln-a,.plot path.ln-b').forEach(p=>{
+    try{const L=p.getTotalLength();p.style.setProperty('--len',L);
+      p.style.strokeDasharray=L;p.style.strokeDashoffset=L;
+      p.getBoundingClientRect();p.style.transition='stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1)';
+      p.style.strokeDashoffset=0}catch(e){}})}
+function staggerRows(tb){
+  if(RM)return;
+  tb.querySelectorAll('tbody tr').forEach((tr,i)=>{
+    if(i>26)return;tr.classList.add('in');tr.style.animationDelay=(i*14)+'ms'})}
+
+/* ══════════ МАКРО ДАННИ ══════════ */
+const MACRO={rates:null,curve:null,sectors:null,fed:null,cpi:null,unemp:null};
+async function loadMacro(){
+  const tryJ=async p=>{try{return await J(p)}catch(e){return null}};
+  const [tr,fed,cpi,un,sec]=await Promise.all([
+    tryJ('treasury-rates'),
+    tryJ('economic-indicators?name=federalFunds'),
+    tryJ('economic-indicators?name=CPI'),
+    tryJ('economic-indicators?name=unemploymentRate'),
+    tryJ('sector-performance-snapshot?date='+new Date(Date.now()-864e5).toISOString().slice(0,10))]);
+  MACRO.curve=Array.isArray(tr)&&tr.length?tr[0]:null;
+  MACRO.fed=Array.isArray(fed)&&fed.length?fed[0]:null;
+  MACRO.cpi=Array.isArray(cpi)&&cpi.length>12?cpi:null;
+  MACRO.unemp=Array.isArray(un)&&un.length?un[0]:null;
+  MACRO.sectors=Array.isArray(sec)&&sec.length?sec:null;
+  paintMacro()}
+
+function paintMacro(){
+  const box=$('macro-cells');if(!box)return;
+  const c=MACRO.curve,f=MACRO.fed,u=MACRO.unemp;
+  let cpiYoY=null;
+  if(MACRO.cpi&&MACRO.cpi.length>12){
+    const a=MACRO.cpi[0].value,b=MACRO.cpi[12].value;
+    if(a&&b)cpiYoY=(a/b-1)*100}
+  const inv=c&&c.year10!=null&&c.year2!=null?c.year10-c.year2:null;
+  const cells=[
+    ['Лихва на Фед',f&&f.value!=null?n2(f.value,2)+'%':'—',
+      f?'към '+f.date:'изисква платен план'],
+    ['10-годишна облигация',c&&c.year10!=null?n2(c.year10,2)+'%':'—',
+      c?'безрискова доходност':'—'],
+    ['Инфлация годишно',cpiYoY!=null?n2(cpiYoY,1)+'%':'—',
+      cpiYoY!=null?(cpiYoY>3?'над целта от 2%':'близо до целта'):'—'],
+    ['Безработица',u&&u.value!=null?n2(u.value,1)+'%':'—',u?'към '+u.date:'—'],
+    ['10г. минус 2г.',inv!=null?(inv>=0?'+':'')+n2(inv,2)+'%':'—',
+      inv==null?'—':(inv<0?'обърната крива':'нормална крива')]];
+  box.innerHTML=cells.map(x=>
+    `<div class="macro-cell"><dt>${x[0]}</dt><dd>${x[1]}</dd><div class="foot">${x[2]}</div></div>`).join('');
+
+  if(c){
+    const pts=[['1м',c.month1],['3м',c.month3],['6м',c.month6],['1г',c.year1],['2г',c.year2],
+      ['3г',c.year3],['5г',c.year5],['7г',c.year7],['10г',c.year10],['20г',c.year20],['30г',c.year30]]
+      .filter(p=>p[1]!=null);
+    if(pts.length>3){
+      $('curve-box').style.display='';
+      $('curve-plot').innerHTML=plot([{d:pts.map(p=>p[1]),cls:'ln-a',area:'area-a'}],
+        pts.map(p=>p[0]),v=>n2(v,1)+'%');
+      animatePaths($('curve-plot'))}}
+  if(MACRO.sectors){
+    $('sect-box').style.display='';
+    const rows=MACRO.sectors.map(x=>({n:x.sector,v:x.changesPercentage!=null?x.changesPercentage:x.averageChange}))
+      .filter(x=>x.v!=null).sort((a,b)=>b.v-a.v);
+    const mx=Math.max(...rows.map(r=>Math.abs(r.v)),.5);
+    $('sect-list').innerHTML=rows.map((r,i)=>`<div class="sect-bar">
+      <div class="sect-nm">${r.n}</div>
+      <div class="sect-track"><div class="sect-fill" style="${r.v>=0?'left:50%':'right:50%'};
+        width:${(Math.abs(r.v)/mx*50).toFixed(1)}%;background:${r.v>=0?'#4FB286':'#E0707E'};
+        animation-delay:${i*35}ms"></div></div>
+      <div class="sect-v ${r.v>=0?'up':'dn'}">${r.v>=0?'+':''}${n2(r.v,2)}%</div></div>`).join('')}}
+
+/* ══════════ НАЧАЛЕН ДАШБОРД ══════════ */
+function paintHome(){
+  const hero=$('home-hero');if(!hero)return;
+  const rows=FOLIO.map(p=>{const q=Q[p.s];const px=q&&!q.__err?q.price:null;
+    return{...p,q,px,v:px!=null?px*p.q:null,c:p.b*p.q}}).filter(r=>r.v!=null);
+  const val=rows.reduce((a,r)=>a+r.v,0),cost=rows.reduce((a,r)=>a+r.c,0);
+  const pl=val-cost,plp=cost?pl/cost*100:0;
+  const day=rows.reduce((a,r)=>a+((r.q.changePercentage!=null)?r.v*(r.q.changePercentage/100):0),0);
+
+  if(!FOLIO.length){
+    hero.innerHTML=`<div class="hero-lbl">Добре дошъл</div>
+      <div class="hero-val" style="font-size:26px;font-family:'Inter Tight',sans-serif;font-weight:600">Още нямаш позиции</div>
+      <div class="hero-sub">Добави какво притежаваш в раздел Портфейл и това място ще показва стойността ти в реално време.</div>`;
+  }else{
+    let sp='';
+    const have=rows.filter(r=>H[r.s]&&H[r.s].length>30);
+    if(have.length){
+      const len=Math.min(252,...have.map(r=>H[r.s].length)),vals=[];
+      for(let i=len;i>0;i--){let v=0;have.forEach(r=>{const h=H[r.s];v+=h[h.length-i]*r.q});vals.push(v)}
+      const lo=Math.min(...vals),hi=Math.max(...vals),W=700,Hh=62;
+      const X=i=>i/(vals.length-1)*W,Y=v=>hi===lo?Hh/2:Hh-4-((v-lo)/(hi-lo))*(Hh-10);
+      let d='';vals.forEach((v,i)=>d+=(d?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1));
+      const col=vals[vals.length-1]>=vals[0]?'#4FB286':'#E0707E';
+      sp=`<div class="hero-spark"><svg viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none">
+        <path d="${d}L${W} ${Hh}L0 ${Hh}Z" fill="${col}" opacity=".11"/>
+        <path class="ln-a" d="${d}" style="stroke:${col}"/></svg></div>`}
+    hero.innerHTML=`<div class="hero-lbl">Стойност на портфейла</div>
+      <div class="hero-val"><span id="hv">${USD(val)}</span></div>
+      <div class="hero-sub">
+        <span class="${day>=0?'up':'dn'}">${day>=0?'▲':'▼'} ${USD(Math.abs(day))} днес
+          (${day>=0?'+':''}${n2(val?day/val*100:0,2)}%)</span>
+        <span class="${pl>=0?'up':'dn'}">Общо ${pl>=0?'+':'−'}${USD(Math.abs(pl))} (${plp>=0?'+':''}${n2(plp,1)}%)</span>
+        <span class="mute">${FOLIO.length} позиции</span></div>${sp}`;
+    const hv=$('hv');if(hv){hv.dataset.v=0;countUp(hv,val,v=>USD(v),700)}
+    animatePaths(hero)}
+
+  const live=ALL.map(([s])=>Q[s]).filter(q=>q&&!q.__err&&q.price);
+  const den=live.filter(q=>q.priceAvg200).length;
+  const ab=live.filter(q=>q.priceAvg200&&q.price>q.priceAvg200).length;
+  const rs=ALL.map(([s])=>wilder(H[s],14)).filter(v=>v!=null);
+  const avg=rs.length?rs.reduce((a,b)=>a+b,0)/rs.length:null;
+  const spy=Q['SPY'],btc=Q['BTCUSD'],gld=Q['GLD'];
+  const f=MACRO.fed,c=MACRO.curve;
+  const tiles=[
+    ['S&P 500',spy&&spy.price?money(spy.price):'—',
+      spy&&spy.changePercentage!=null?`<span class="${spy.changePercentage>=0?'up':'dn'}">${spy.changePercentage>=0?'+':''}${n2(spy.changePercentage,2)}%</span>`:''],
+    ['Bitcoin',btc&&btc.price?USD(btc.price):'—',
+      btc&&btc.changePercentage!=null?`<span class="${btc.changePercentage>=0?'up':'dn'}">${btc.changePercentage>=0?'+':''}${n2(btc.changePercentage,2)}%</span>`:''],
+    ['Злато',gld&&gld.price?money(gld.price):'—',
+      gld&&gld.changePercentage!=null?`<span class="${gld.changePercentage>=0?'up':'dn'}">${gld.changePercentage>=0?'+':''}${n2(gld.changePercentage,2)}%</span>`:''],
+    ['Лихва на Фед',f&&f.value!=null?n2(f.value,2)+'%':'—',f?'цената на парите':'платен план'],
+    ['Над 200-дн.',den?ab+'/'+den:'—',den?(ab/den>=.6?'широк възход':(ab/den<=.4?'слабост':'разделен')):''],
+    ['Среден RSI',avg==null?'—':n2(avg,0),avg==null?'':(avg>=65?'напрежение':(avg<=35?'разпродажба':'спокойно'))]];
+  $('home-strip').innerHTML=tiles.map(t=>
+    `<div class="tile"><dt>${t[0]}</dt><dd>${t[1]}</dd><div class="foot">${t[2]||''}</div></div>`).join('');
+
+  const mine=$('home-mine');
+  if(!rows.length)mine.innerHTML='<div class="empty-m"><b>Няма позиции</b>Добави активи в Портфейл.</div>';
+  else{
+    const sorted=[...rows].filter(r=>r.q.changePercentage!=null)
+      .sort((a,b)=>Math.abs(b.q.changePercentage)-Math.abs(a.q.changePercentage)).slice(0,6);
+    mine.innerHTML=sorted.map(r=>`<div class="mv-row" data-go="${r.s}">
+      <div><div class="mv-nm">${NAME[r.s]}</div><div class="mv-tk">${r.s} · ${USD(r.v)}</div></div>
+      <div class="mv-v ${r.q.changePercentage>=0?'up':'dn'}">${r.q.changePercentage>=0?'+':''}${n2(r.q.changePercentage,2)}%
+        <div class="mv-tk">${r.q.changePercentage>=0?'+':'−'}${USD(Math.abs(r.v*r.q.changePercentage/100))}</div></div></div>`).join('')}
+
+  const todo=[];
+  ALL.forEach(([s,n])=>{
+    const q=Q[s];if(!q||q.__err)return;
+    const r=wilder(H[s],14),x=crossOf(H[s],q.priceAvg50,q.priceAvg200);
+    const owned=FOLIO.some(p=>p.s===s);
+    if(x&&x.t==='златен кръст')todo.push(['ok',`<b>${n}</b> току-що направи златен кръст — 50-дневната мина над 200-дневната.`]);
+    if(x&&x.t==='мъртъв кръст')todo.push(['warn',`<b>${n}</b> направи мъртъв кръст — 50-дневната падна под 200-дневната.`]);
+    if(r!=null&&r<=30)todo.push([owned?'warn':'ok',`<b>${n}</b> е с RSI ${n2(r,0)} — продажбите изпревариха обичайния темп.`]);
+    if(r!=null&&r>=75&&owned)todo.push(['warn',`<b>${n}</b> е с RSI ${n2(r,0)} — държиш актив в силно разгорещена зона.`]);
+    const f15=fairAt(s,.15);
+    if(f15&&f15.mg>25)todo.push(['ok',`<b>${n}</b> се търгува ${n2(f15.mg,0)}% под изчислената стойност при твоите допускания.`])});
+  const box=$('home-todo');
+  box.innerHTML=todo.length?todo.slice(0,7).map(t=>
+    `<div class="todo"><span class="dot ${t[0]}"></span><div class="tx">${t[1]}</div></div>`).join('')
+    +`<div class="hint">Това са забелязани условия, не препоръки. Провери сам преди да действаш.</div>`
+    : '<div class="empty-m"><b>Нищо необичайно</b>Нито един следен актив не е в крайно състояние в момента.</div>';
+
+  const mv=$('home-movers');
+  const sorted=live.filter(q=>q.changePercentage!=null).sort((a,b)=>b.changePercentage-a.changePercentage);
+  const top=sorted.slice(0,5),bot=sorted.slice(-5).reverse();
+  const list=(arr,t)=>`<div><div class="hero-lbl" style="margin-bottom:8px">${t}</div>`+
+    arr.map(q=>`<div class="mv-row" data-go="${q.symbol}">
+      <div><div class="mv-nm">${NAME[q.symbol]||q.symbol}</div><div class="mv-tk">${q.symbol}</div></div>
+      <div class="mv-v ${q.changePercentage>=0?'up':'dn'}">${q.changePercentage>=0?'+':''}${n2(q.changePercentage,2)}%
+        <div class="mv-tk mute">${money(q.price)}</div></div></div>`).join('')+'</div>';
+  mv.innerHTML=list(top,'Най-силни днес')+list(bot,'Най-слаби днес');
+  document.querySelectorAll('[data-go]').forEach(e=>e.onclick=()=>openDock(e.dataset.go))}
+
+/* ══════════ ПРЕВКЛЮЧВАНЕ НА МОДУЛИ ══════════ */
+function showMod(m){
+  document.querySelectorAll('.mod').forEach(b=>b.setAttribute('aria-selected',b.dataset.mod===m));
+  document.querySelectorAll('.mod-panel').forEach(p=>p.classList.remove('on'));
+  document.body.classList.toggle('not-market',m!=='market');
+  if(m!=='market'){const p=$('p-'+m);if(p)p.classList.add('on')}
+  $('reload').style.display=(m==='market'||m==='home')?'':'none';
+  folioOptions();
+  if(m==='home')paintHome();
+  if(m==='macro'){paintMacro();if(!MACRO.curve&&!MACRO.fed)loadMacro()}
+  if(m==='folio')paintFolio();
+  if(m==='grow')calcGrow();
+  if(m==='loan')calcLoan();
+  if(m==='budget')paintBudget();
+  window.scrollTo({top:0,behavior:'smooth'})}
+
+document.querySelectorAll('.mod').forEach(b=>b.onclick=()=>showMod(b.dataset.mod));
+document.querySelectorAll('.seg').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.seg').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');view=b.dataset.view;paint()});
+$('pf-add').onclick=folioAdd;
+$('b-add').onclick=budgetAdd;
+$('b-name').onkeydown=e=>{if(e.key==='Enter')budgetAdd()};
+$('pf-qty').onkeydown=$('pf-buy').onkeydown=e=>{if(e.key==='Enter')folioAdd()};
+['g-init','g-mon','g-yr','g-rate','g-infl'].forEach(id=>{$(id).oninput=calcGrow});
+$('g-src').onchange=growFromAsset;
+['l-amt','l-rate','l-yr','l-extra'].forEach(id=>{$(id).oninput=calcLoan});
+folioOptions();calcGrow();calcLoan();paintBudget();showMod('home');loadMacro();
+
+$('keyi').value=KEY;
+$('keyi').onchange=e=>{const v=e.target.value.trim();if(v){KEY=v;localStorage.setItem('fmpkey',v);load()}};
+load();
+</script>
+</body>
+</html>
